@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <wrapper.hpp>
+#include <my_main.h>
 
 /* USER CODE END Includes */
 
@@ -33,9 +33,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define ADC_BUF_LEN 200
-#define ADC_NO_CONV 10
-#define ADC_CH 0 			// 0-9
 
 /* USER CODE END PD */
 
@@ -55,10 +52,6 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 
-static uint16_t ADC_buf[ADC_BUF_LEN];
-static int ADC_buf_read_adress = 0;
-static int ADC_new_data = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,6 +65,7 @@ static void MX_TIM2_Init(void);
 
 
 static void UART_SendString(uint8_t* buffer, uint16_t buf_lenght);
+static void ADC_Start_DMA(uint32_t* buffer, uint16_t buf_lenght);
 
 
 /* USER CODE END PFP */
@@ -119,12 +113,16 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_buf, ADC_BUF_LEN);
+  MainFunctions Main_Functions =
+  {
+		  .UART_SendString = UART_SendString,
+		  .ADC_Start_DMA = ADC_Start_DMA
+  };
+
+  my_main_init(&Main_Functions);
+
   HAL_TIM_Base_Start(&htim2);
-
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
-
-  my_main_init();
 
 
   /* USER CODE END 2 */
@@ -134,21 +132,6 @@ int main(void)
   while (1)
   {
 	  my_main_loop();
-
-	  if(ADC_new_data)		// only for monitoring and debugging
-		{
-			for(int i = ADC_CH; i < (ADC_BUF_LEN / 2); i+= ADC_NO_CONV)
-			{
-				uint8_t send_buffer[2];
-
-				send_buffer[0] = (uint8_t) ADC_buf[ADC_buf_read_adress + i];
-				send_buffer[1] = (uint8_t) (ADC_buf[ADC_buf_read_adress + i] >> 8);
-
-				UART_SendString((uint8_t*)send_buffer, 2);
-			}
-
-			ADC_new_data = 0;
-		}
 
     /* USER CODE END WHILE */
 
@@ -465,24 +448,29 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-static void UART_SendString(uint8_t* buffer, uint16_t buf_lenght)
+
+/*System functions which used by my_main.cpp*/
+
+static void UART_SendString(uint8_t* buffer, uint16_t buf_length)
 {
-	HAL_UART_Transmit(&huart1,(uint8_t*) buffer, buf_lenght, 10);
+	HAL_UART_Transmit(&huart1, buffer, buf_length, 10);
 }
 
+static void ADC_Start_DMA(uint32_t* buffer, uint16_t buf_length)
+{
+	HAL_ADC_Start_DMA(&hadc1, buffer, buf_length);
+}
 
 /* System IT Callback Functions */
 
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 {
-	ADC_buf_read_adress = 0;
-	ADC_new_data = 1;
+	my_main_IT(ADC_HALF_COMPLETE);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc1)
 {
-	ADC_buf_read_adress = ADC_BUF_LEN / 2;
-	ADC_new_data = 1;
+	my_main_IT(ADC_FULL_COMPLETE);
 }
 
 /* USER CODE END 4 */
