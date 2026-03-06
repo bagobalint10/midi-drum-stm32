@@ -9,6 +9,7 @@
 
 #include <piezo_midi.hpp>
 #include <common_types.hpp>
+#include <circular_fifo.hpp>
 
 
 
@@ -26,6 +27,8 @@ struct Adc {
 };
 
 static Adc<200> adc = {.number_of_conversions = 10 };
+
+static FIFO::CircularFifo<Midi::Message,30> OutputBuffer;
 
 static MainFunctions Main = {0};
 
@@ -69,23 +72,16 @@ void my_main_loop(void)
 		if(return_message.status)
 		{
 			// push uart buffer
+			OutputBuffer.push(return_message);
 		}
 
 		adc.new_data_available = false;
-
-		/*
-				for(int i = ADC_CH; i < (ADC_BUF_LEN / 2); i+= ADC_NO_CONV) // ez majd a class belsejébe menjen
-				{
-					uint8_t send_buffer[2];
-
-					send_buffer[0] = (uint8_t) adc.buffer[adc.read_start_index + i];
-					send_buffer[1] = (uint8_t) (adc.buffer[adc.read_start_index + i] >> 8);
-
-					Main.UART_SendString((uint8_t*)send_buffer, 2);
-				}*/
-
-				///////////////
 	}
+
+	/*if(uart_dma == empty)
+	{
+		send_dma_uart ( buffer.pop());
+	}*/
 }
 
 void my_main_IT(IT_Types type)

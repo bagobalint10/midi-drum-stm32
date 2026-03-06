@@ -11,6 +11,12 @@
 
 	#include <common_types.hpp>
 
+	extern "C"
+	{
+		#include "stdint.h"
+		#include "stdio.h"
+	}
+
 	namespace Piezo
 	{
 		struct ConfigParameters {
