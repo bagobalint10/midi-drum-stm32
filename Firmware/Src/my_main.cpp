@@ -7,43 +7,84 @@
 
 #include <my_main.h>
 
-#define ADC_BUF_LEN 200
-#define ADC_NO_CONV 10
-#define ADC_CH 0 			// 0-9
+#include <piezo_midi.hpp>
+#include <common_types.hpp>
 
 
-static uint16_t ADC_buf[ADC_BUF_LEN];
-static int ADC_buf_read_adress = 0;
-static int ADC_new_data = 0;
 
-MainFunctions Main = {0};
+template <size_t Buffersize>
+struct Adc {
 
+	const size_t buffer_length = Buffersize;
+	const size_t buffer_half_length = (Buffersize / 2);
 
+	uint16_t buffer[Buffersize];
+	uint16_t read_start_index = 0;
+	bool	 new_data_available = 0;
+	uint8_t number_of_conversions;
+
+};
+
+static Adc<200> adc = {.number_of_conversions = 10 };
+
+static MainFunctions Main = {0};
+
+static Piezo::MidiConverter DrumPad[1];
+
+static Piezo::ConfigParameters ConfPad[1] = {
+
+	[0] = 	{	.midi_channel = 0x00, .midi_note = 20,
+
+				.hpf_alfa = 0.5f, .lpf_alfa = 0.5f,
+
+				.trigger_treshold = 1.5f, .trigger_scan_time = 20,
+				.trigger_inactive_time = 50,
+
+				.trigger_min_vel = 10, .trigger_max_vel = 127,
+				.trigger_min_float = 0.5f, .trigger_max_float = 2.5f,
+
+				.adc_buffer_half_length = (uint16_t) adc.buffer_half_length,
+				.adc_number_of_conversions = adc.number_of_conversions,
+				.adc_channel_rank = 0,
+			}
+};
 
 void my_main_init(MainFunctions* M)
 {
-	M->ADC_Start_DMA((uint32_t*)ADC_buf,ADC_BUF_LEN);
-
+	M->ADC_Start_DMA((uint32_t*)adc.buffer,adc.buffer_length);
 	Main.UART_SendString = M->UART_SendString;
+
+	DrumPad[0].set_paratemers(ConfPad[0]);
 }
 
 
 void my_main_loop(void)
-
 {
-	if(ADC_new_data)		// only for monitoring and debugging
+	if(adc.new_data_available)
 	{
-		for(int i = ADC_CH; i < (ADC_BUF_LEN / 2); i+= ADC_NO_CONV)
+		Midi::Message return_message = {0};
+
+		return_message = DrumPad[0].analyse_buffer(&adc.buffer[adc.read_start_index]);
+
+		if(return_message.status)
 		{
-			uint8_t send_buffer[2];
-
-			send_buffer[0] = (uint8_t) ADC_buf[ADC_buf_read_adress + i];
-			send_buffer[1] = (uint8_t) (ADC_buf[ADC_buf_read_adress + i] >> 8);
-
-			Main.UART_SendString((uint8_t*)send_buffer, 2);
+			// push uart buffer
 		}
 
-		ADC_new_data = 0;
+		adc.new_data_available = false;
+
+		/*
+				for(int i = ADC_CH; i < (ADC_BUF_LEN / 2); i+= ADC_NO_CONV) // ez majd a class belsejébe menjen
+				{
+					uint8_t send_buffer[2];
+
+					send_buffer[0] = (uint8_t) adc.buffer[adc.read_start_index + i];
+					send_buffer[1] = (uint8_t) (adc.buffer[adc.read_start_index + i] >> 8);
+
+					Main.UART_SendString((uint8_t*)send_buffer, 2);
+				}*/
+
+				///////////////
 	}
 }
 
@@ -53,14 +94,16 @@ void my_main_IT(IT_Types type)
 	{
 	case ADC_FULL_COMPLETE :
 
-		ADC_buf_read_adress = ADC_BUF_LEN / 2;
-		ADC_new_data = 1;
+		adc.read_start_index = adc.buffer_half_length;
+		adc.new_data_available = true;
+
 		break;
 
 	case ADC_HALF_COMPLETE :
 
-		ADC_buf_read_adress = 0;
-		ADC_new_data = 1;
+		adc.read_start_index = 0;
+		adc.new_data_available = true;
+
 		break;
 
 	case UART_TX_COMPLETE :
