@@ -67,14 +67,14 @@
 
 			struct HpfVars{
 
-				float prev_output;
-				float prev_input;
+				float prev_output = 0.0f;
+				float prev_input = 2000.0f;
 				float alfa;
 			};
 
 			struct LpfVars{
 
-				float prev_output;
+				float prev_output = 0.0f;
 				float alfa;
 			};
 

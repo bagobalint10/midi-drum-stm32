@@ -17,7 +17,7 @@ void Piezo::MidiConverter::hp_filter(void)
 	float output = 0;
 	float input = common.io_value;
 
-	output = hpf.prev_output + input - (hpf.prev_input * hpf.alfa);
+	output = (hpf.prev_output + input - hpf.prev_input) * hpf.alfa;
 
 	hpf.prev_input = input;
 	hpf.prev_output = output;
@@ -47,7 +47,7 @@ void Piezo::MidiConverter::trigger(void)
 	{
 		if(common.io_value > trg.treshold)
 		{
-			trg.state = TriggerState::INACTIVE;
+			trg.state = TriggerState::PEAK_DETECT;
 
 			trg.max_value = 0;
 			trg.time_countdown = trg.scan_time;
@@ -87,6 +87,7 @@ void Piezo::MidiConverter::trigger(void)
 			trg.state = TriggerState::IDLE;
 		}
 	};
+
 
 
 	switch(trg.state)
@@ -159,7 +160,7 @@ void Piezo::MidiConverter::float_to_midi(void)
 
 Midi::Message Piezo::MidiConverter::analyse_buffer(uint16_t* read_start_adress)
 {
-	for(int i = 0; i < anl_b.buffer_half_length; i += anl_b.number_of_conversions)
+	for(int i = 0, j = 0 ; i < anl_b.buffer_half_length; i += anl_b.number_of_conversions, j++)
 	{
 		common.io_value = *(read_start_adress + i + anl_b.channel_rank);
 
@@ -169,6 +170,8 @@ Midi::Message Piezo::MidiConverter::analyse_buffer(uint16_t* read_start_adress)
 		Piezo::MidiConverter::lp_filter();
 		Piezo::MidiConverter::trigger();
 	}
+
+	if(trg.time_countdown > 0) trg.time_countdown--;
 
 	Piezo::MidiConverter::float_to_midi();
 

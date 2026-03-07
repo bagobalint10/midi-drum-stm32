@@ -11,7 +11,9 @@
 #include <common_types.hpp>
 #include <circular_fifo.hpp>
 
-
+// test
+//static uint8_t convert[1];
+//
 
 template <size_t Buffersize>
 struct Adc {
@@ -38,13 +40,13 @@ static Piezo::ConfigParameters ConfPad[1] = {
 
 	[0] = 	{	.midi_channel = 0x00, .midi_note = 20,
 
-				.hpf_alfa = 0.5f, .lpf_alfa = 0.5f,
+				.hpf_alfa = 0.98f, .lpf_alfa = 0.04f,
 
-				.trigger_treshold = 1.5f, .trigger_scan_time = 20,
-				.trigger_inactive_time = 50,
+				.trigger_treshold = 120.0f, .trigger_scan_time = 3,  // cycle + 1,  3 =  2ms
+				.trigger_inactive_time = 30, //50
 
-				.trigger_min_vel = 10, .trigger_max_vel = 127,
-				.trigger_min_float = 0.5f, .trigger_max_float = 2.5f,
+				.trigger_min_vel = 20, .trigger_max_vel = 127,
+				.trigger_min_float = 130.0f, .trigger_max_float = 600.0f,
 
 				.adc_buffer_half_length = (uint16_t) adc.buffer_half_length,
 				.adc_number_of_conversions = adc.number_of_conversions,
@@ -60,14 +62,13 @@ void my_main_init(MainFunctions* M)
 
 	DrumPad[0].set_paratemers(ConfPad[0]);
 
-
 }
 
 
 void my_main_loop(void)
 {
 
-	if(adc.new_data_available)
+	if(adc.new_data_available )
 	{
 		Midi::Message return_message = {0};
 
@@ -75,6 +76,10 @@ void my_main_loop(void)
 
 		if(return_message.status)
 		{
+			// led feedback
+			if(return_message.velocity > 0) Main.LED_Write(GREEN,1);
+			else Main.LED_Write(GREEN,0);
+
 			// push uart buffer
 			OutputBuffer.push(return_message);
 		}
@@ -82,10 +87,6 @@ void my_main_loop(void)
 		adc.new_data_available = false;
 	}
 
-	/*if(uart_dma == empty)
-	{
-		send_dma_uart ( buffer.pop());
-	}*/
 }
 
 void my_main_IT(IT_Types type)
