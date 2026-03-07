@@ -4,7 +4,7 @@ Release/
 build/
 output/
 
-# ordító által generált fájlok
+# fordító által generált fájlok
 *.o
 *.d
 *.elf
@@ -27,3 +27,6 @@ Thumbs.db
 # Python vagy egyéb segédszkriptek cache
 __pycache__/
 *.pyc
+
+# Hal Drivers
+Drivers/
