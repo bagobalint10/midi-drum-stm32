@@ -22,6 +22,7 @@
 		{
 		private:
 			T buffer[Buffersize] = {0};
+			T default_message = {0};
 
 			uint16_t write_i = 0;
 			uint16_t read_i = 0;
@@ -57,7 +58,7 @@
 					buffer[write_i] = input;
 				}
 			}
-			T pop()
+			T pop(void)
 			{
 				if(write_i == read_i)
 				{
@@ -74,6 +75,8 @@
 					if(read_i >= (uint16_t) Buffersize) read_i = 0;
 					return buffer[read_i];
 				}
+
+				return default_message;
 			}
 			bool is_empty()
 			{

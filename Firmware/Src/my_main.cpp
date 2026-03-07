@@ -12,7 +12,7 @@
 #include <circular_fifo.hpp>
 
 // test
-//static uint8_t convert[1];
+static uint8_t test_buffer[3];
 //
 
 template <size_t Buffersize>
@@ -38,7 +38,7 @@ static Piezo::MidiConverter DrumPad[1];
 
 static Piezo::ConfigParameters ConfPad[1] = {
 
-	[0] = 	{	.midi_channel = 0x00, .midi_note = 20,
+	[0] = 	{	.midi_channel = 0x00, .midi_note = 33,
 
 				.hpf_alfa = 0.98f, .lpf_alfa = 0.04f,
 
@@ -87,7 +87,19 @@ void my_main_loop(void)
 		adc.new_data_available = false;
 	}
 
+
+	Midi::Message send_message = OutputBuffer.pop();
+
+	if (send_message.status)
+	{
+		test_buffer[0] = send_message.status;
+		test_buffer[1] = send_message.note;
+		test_buffer[2] = send_message.velocity;
+
+		Main.UART_SendString((uint8_t*)test_buffer, 3);
+	}
 }
+
 
 void my_main_IT(IT_Types type)
 {
