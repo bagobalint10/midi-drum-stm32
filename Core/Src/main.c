@@ -66,6 +66,7 @@ static void MX_TIM2_Init(void);
 
 static void UART_SendString(uint8_t* buffer, uint16_t buf_lenght);
 static void ADC_Start_DMA(uint32_t* buffer, uint16_t buf_lenght);
+static void LED_Write(LEDS led, uint8_t state);
 
 
 /* USER CODE END PFP */
@@ -116,14 +117,14 @@ int main(void)
   MainFunctions Main_Functions =
   {
 		  .UART_SendString = UART_SendString,
-		  .ADC_Start_DMA = ADC_Start_DMA
+		  .ADC_Start_DMA = ADC_Start_DMA,
+		  .LED_Write = LED_Write
   };
 
   my_main_init(&Main_Functions);
 
   HAL_TIM_Base_Start(&htim2);
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
-
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);	// off builtin led
 
   /* USER CODE END 2 */
 
@@ -435,12 +436,22 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|LED_RED_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LED_GREEN_Pin LED_RED_Pin */
+  GPIO_InitStruct.Pin = LED_GREEN_Pin|LED_RED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -459,6 +470,25 @@ static void UART_SendString(uint8_t* buffer, uint16_t buf_length)
 static void ADC_Start_DMA(uint32_t* buffer, uint16_t buf_length)
 {
 	HAL_ADC_Start_DMA(&hadc1, buffer, buf_length);
+}
+
+static void LED_Write(LEDS led, uint8_t state)
+{
+	switch(led)
+	{
+	case RED :
+
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, state);
+		break;
+	case GREEN :
+
+		HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, state);
+		break;
+	case BLUE :
+		break;
+	default:
+		break;
+	}
 }
 
 /* System IT Callback Functions */

@@ -56,13 +56,17 @@ void my_main_init(MainFunctions* M)
 {
 	M->ADC_Start_DMA((uint32_t*)adc.buffer,adc.buffer_length);
 	Main.UART_SendString = M->UART_SendString;
+	Main.LED_Write = M->LED_Write;
 
 	DrumPad[0].set_paratemers(ConfPad[0]);
+
+
 }
 
 
 void my_main_loop(void)
 {
+
 	if(adc.new_data_available)
 	{
 		Midi::Message return_message = {0};
