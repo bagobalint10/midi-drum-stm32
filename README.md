@@ -125,6 +125,10 @@ FTMN --> OUT
 
 OUT --> UART[Send via UART] 
 ```
+## Excel charts representing different data stages
+
+![circuit](images/excel_plots.jpg)
+
 ## Folder Structure
 
 ```
