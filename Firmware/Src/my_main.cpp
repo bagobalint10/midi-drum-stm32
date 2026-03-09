@@ -11,9 +11,6 @@
 #include <common_types.hpp>
 #include <circular_fifo.hpp>
 
-// test
-static uint8_t test_buffer[3];
-//
 
 template <size_t Buffersize>
 struct Adc {
@@ -27,6 +24,8 @@ struct Adc {
 	uint8_t number_of_conversions;
 
 };
+
+static uint8_t uart_buffer[3];
 
 static Adc<200> adc = {.number_of_conversions = 10 };
 
@@ -64,10 +63,8 @@ void my_main_init(MainFunctions* M)
 
 }
 
-
 void my_main_loop(void)
 {
-
 	if(adc.new_data_available )
 	{
 		Midi::Message return_message = {0};
@@ -80,7 +77,6 @@ void my_main_loop(void)
 			if(return_message.velocity > 0) Main.LED_Write(GREEN,1);
 			else Main.LED_Write(GREEN,0);
 
-			// push uart buffer
 			OutputBuffer.push(return_message);
 		}
 
@@ -88,15 +84,15 @@ void my_main_loop(void)
 	}
 
 
-	Midi::Message send_message = OutputBuffer.pop();
+	Midi::Message send_message = OutputBuffer.pop();	// trying to pop out data
 
 	if (send_message.status)
 	{
-		test_buffer[0] = send_message.status;
-		test_buffer[1] = send_message.note;
-		test_buffer[2] = send_message.velocity;
+		uart_buffer[0] = send_message.status;
+		uart_buffer[1] = send_message.note;
+		uart_buffer[2] = send_message.velocity;
 
-		Main.UART_SendString((uint8_t*)test_buffer, 3);
+		Main.UART_SendString((uint8_t*)uart_buffer, 3);
 	}
 }
 

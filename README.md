@@ -3,7 +3,7 @@
 
 ## General Information
 
-This project aimed to create a simple but well optimised firmware, what is processing piezo mics outputs, and converts it intoto MIDI signal. In this project I used `C++` language and put all signal processing elements into one class. Because of that, you can easily configure as many Drumpad objects as you want. For the tests (and in the video), I used `Ableton` and `EZdrummer` for generating snare sounds from the midi input, and used `Hairless MIDI` and `LOOP MIDI` for the serialport-midi connection.
+This project aimed to create a simple but well optimised firmware, what is processing piezo mics outputs, and converts it into MIDI signal. In this project I used `C++` language and put all signal processing elements into one class. Because of that, you can easily configure as many Drumpad objects as you want. For the tests (and in the video), I used `Ableton` and `EZdrummer` for generating snare sounds from the midi input, and used `Hairless MIDI` and `LOOP MIDI` for the serialport-midi connection.
 
 
 ## Video of device in operation
