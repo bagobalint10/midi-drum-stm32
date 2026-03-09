@@ -42,11 +42,11 @@ static Piezo::ConfigParameters ConfPad[1] = {
 
 				.hpf_alfa = 0.98f, .lpf_alfa = 0.04f,
 
-				.trigger_treshold = 120.0f, .trigger_scan_time = 3,  // cycle + 1,  3 =  2ms
+				.trigger_treshold = 70.0f, .trigger_scan_time = 4,  // cycle + 1,  3 =  2ms
 				.trigger_inactive_time = 30, //50
 
 				.trigger_min_vel = 20, .trigger_max_vel = 127,
-				.trigger_min_float = 130.0f, .trigger_max_float = 600.0f,
+				.trigger_min_float = 70.0f, .trigger_max_float = 800.0f,
 
 				.adc_buffer_half_length = (uint16_t) adc.buffer_half_length,
 				.adc_number_of_conversions = adc.number_of_conversions,
